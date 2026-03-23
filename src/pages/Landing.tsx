@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Sparkles, Zap, Shield, Globe, ArrowRight, CheckCircle2, MessageSquare, Star, Heart, Instagram, Music, Linkedin } from 'lucide-react';
@@ -8,12 +9,15 @@ export default function Landing() {
   const { user, signIn } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (user) navigate('/app/dashboard');
+  }, [user]);
+
   const handleStart = async () => {
     if (user) {
       navigate('/app/dashboard');
     } else {
       await signIn();
-      navigate('/app/dashboard');
     }
   };
 
