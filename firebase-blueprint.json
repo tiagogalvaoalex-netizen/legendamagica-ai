@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user information and credit balance.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "plan": { "type": "string", "enum": ["free", "pro"] },
+        "creditsRemaining": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "plan", "creditsRemaining"]
+    },
+    "Generation": {
+      "title": "Caption Generation",
+      "description": "Stores a single AI generation request and its results.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "platform": { "type": "string" },
+        "category": { "type": "string" },
+        "theme": { "type": "string" },
+        "tone": { "type": "string" },
+        "language": { "type": "string" },
+        "results": { "type": "array", "items": { "type": "string" } },
+        "hashtags": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "platform", "results", "createdAt"]
+    },
+    "Favorite": {
+      "title": "Favorite Caption",
+      "description": "Stores a caption saved by the user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "caption": { "type": "string" },
+        "platform": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "caption", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document"
+    },
+    "/generations/{generationId}": {
+      "schema": "Generation",
+      "description": "History of AI generations"
+    },
+    "/favorites/{favoriteId}": {
+      "schema": "Favorite",
+      "description": "User's favorite captions"
+    }
+  }
+}

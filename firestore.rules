@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId
+    // Fields:
+    //   - uid: string (required)
+    //   - displayName: string (optional)
+    //   - email: string (required)
+    //   - plan: string (required, 'free' or 'pro')
+    //   - creditsRemaining: number (required)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: generations
+    // Document ID: generationId
+    // Fields:
+    //   - userId: string (required)
+    //   - platform: string (required)
+    //   - category: string (optional)
+    //   - theme: string (optional)
+    //   - tone: string (optional)
+    //   - language: string (optional)
+    //   - results: list (required)
+    //   - hashtags: list (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: favorites
+    // Document ID: favoriteId
+    // Fields:
+    //   - userId: string (required)
+    //   - caption: string (required)
+    //   - platform: string (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'plan', 'creditsRemaining', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             isValidEmail(data.email) &&
+             data.plan in ['free', 'pro'] &&
+             data.creditsRemaining is number &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidGeneration(data) {
+      return data.keys().hasAll(['userId', 'platform', 'results', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.platform is string &&
+             data.results is list &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidFavorite(data) {
+      return data.keys().hasAll(['userId', 'caption', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.caption is string &&
+             data.caption.size() < 5000 &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Match Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
+                      request.resource.data.uid == resource.data.uid &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    match /generations/{generationId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidGeneration(request.resource.data);
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    match /favorites/{favoriteId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidFavorite(request.resource.data);
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+  }
+}
