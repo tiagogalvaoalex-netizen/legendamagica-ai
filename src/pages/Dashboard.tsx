@@ -117,11 +117,10 @@ export default function Dashboard() {
             Desbloqueia gerações ilimitadas, tons de voz exclusivos e suporte prioritário.
           </p>
           <button 
-            onClick={handleUpgrade}
-            disabled={upgrading || profile?.plan === 'pro'}
-            className="mt-auto w-full border-2 border-stone-900 dark:border-stone-700 text-stone-900 dark:text-white py-3 rounded-xl font-bold hover:bg-stone-900 dark:hover:bg-stone-800 hover:text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            disabled
+            className="mt-auto w-full border-2 border-stone-300 dark:border-stone-700 text-stone-400 dark:text-stone-500 py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-not-allowed"
           >
-            {upgrading ? <Loader2 className="animate-spin" size={20} /> : profile?.plan === 'pro' ? 'Plano Ativo' : 'Fazer Upgrade'}
+            Em Breve
           </button>
         </div>
       </div>
